@@ -8,7 +8,7 @@ if (builder.Environment.IsProduction())
 {
     var databaseUrl = builder.Configuration["DATABASE_URL"]
         ?? throw new InvalidOperationException("Render must provide DATABASE_URL.");
-    var postgresConnection = BuildPostgresConnectionString(databaseUrl);
+    var postgresConnection = DatabaseConnectionFactory.BuildPostgresConnectionString(databaseUrl);
     builder.Services.AddDbContext<LabDbContext>(options => options.UseNpgsql(postgresConnection));
 }
 else
@@ -164,23 +164,23 @@ sealed record CategoryInput(string Name, string? Description);
 sealed record ProductInput(string Name, decimal Price, int CategoryId);
 sealed record ProductView(int Id, string Name, decimal Price, int CategoryId, string CategoryName);
 
-
-
-
-static string BuildPostgresConnectionString(string databaseUrl)
+static class DatabaseConnectionFactory
 {
-    var uri = new Uri(databaseUrl);
-    var credentials = uri.UserInfo.Split(':', 2);
-    if (credentials.Length != 2 || string.IsNullOrWhiteSpace(uri.AbsolutePath.Trim('/')))
-        throw new InvalidOperationException("DATABASE_URL is not a valid PostgreSQL URL.");
-
-    return new NpgsqlConnectionStringBuilder
+    public static string BuildPostgresConnectionString(string databaseUrl)
     {
-        Host = uri.Host,
-        Port = uri.IsDefaultPort ? 5432 : uri.Port,
-        Database = uri.AbsolutePath.Trim('/'),
-        Username = Uri.UnescapeDataString(credentials[0]),
-        Password = Uri.UnescapeDataString(credentials[1]),
-        SslMode = SslMode.Prefer
-    }.ConnectionString;
+        var uri = new Uri(databaseUrl);
+        var credentials = uri.UserInfo.Split(':', 2);
+        if (credentials.Length != 2 || string.IsNullOrWhiteSpace(uri.AbsolutePath.Trim('/')))
+            throw new InvalidOperationException("DATABASE_URL is not a valid PostgreSQL URL.");
+
+        return new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Database = uri.AbsolutePath.Trim('/'),
+            Username = Uri.UnescapeDataString(credentials[0]),
+            Password = Uri.UnescapeDataString(credentials[1]),
+            SslMode = SslMode.Prefer
+        }.ConnectionString;
+    }
 }
