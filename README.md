@@ -1,29 +1,34 @@
 # Laboratorio 14 — Inventario .NET 8
-API web para productos y categorías. La relación es uno a muchos: cada categoría agrupa productos y cada producto referencia su categoría con una clave foránea.
+
+Aplicación para registrar productos relacionados con categorías. La pantalla permite buscar, agregar, editar y eliminar productos; cada cambio se guarda en SQLite.
 
 ## Ejecutar en Rider
-Abre `lab14fabriciohancco.sln` con .NET 8 y ejecuta el proyecto. EF Core crea `lab14fabriciohancco.db` con dos categorías iniciales. La página principal permite listar, agregar y eliminar productos.
 
-## Conectar DataGrip
-1. Crea una fuente de datos **SQLite**.
-2. Elige el archivo `lab14fabriciohancco/lab14fabriciohancco.db`, creado tras el primer inicio de la aplicación.
-3. Pulsa **Test Connection**; si se solicita, descarga el driver SQLite y guarda la conexión.
+Abre `lab14fabriciohancco.sln` y ejecuta el perfil `http`. El proyecto local usa la base gestionada desde DataGrip en `C:/Users/user/DataGripProjects/default/lab14-inventory.db`.
 
-Tablas: `Categories` y `Products`; FK `Products.CategoryId` → `Categories.Id`.
+## Base de datos en DataGrip
 
-## Publicación local
-Desde la carpeta de la solución ejecuta:
+La fuente `Lab14 Inventario` apunta al archivo SQLite externo al código. Las tablas son `Categories` y `Products`, con la clave foránea `Products.CategoryId` → `Categories.Id`. Si necesitas recrear el esquema, abre `database/setup.sql` en DataGrip y ejecútalo sobre esa fuente. La configuración local no incorpora el archivo `.db` al repositorio.
+
+## Publicar en Release
+
+Desde la carpeta de la solución:
+
 ```powershell
 dotnet publish .\lab14fabriciohancco\lab14fabriciohancco.csproj -c Release -o .\published
 ```
 
-## GitHub Actions y Render
-`.github/workflows/dotnet.yml` restaura, compila en Release, publica y almacena el artefacto al subir cambios a `main` o `master`. `Dockerfile` y `render.yaml` sirven para crear el Web Service en Render; al conectar el repositorio se puede habilitar el despliegue automático.
+Verifica que `published/` incluya la aplicación y sus dependencias.
 
-Render Free no conserva archivos locales entre despliegues, así que la SQLite de demostración allí puede reiniciarse. En local el archivo persiste y se abre en DataGrip.
+## GitHub Actions y Render
+
+`.github/workflows/dotnet.yml` restaura, compila en Release, publica y guarda el artefacto en cada push a `main`. `Dockerfile` y `render.yaml` configuran un Web Service para conectar desde Render al repositorio.
+
+La instancia gratuita de Render usa un archivo SQLite temporal; los datos de producción pueden reiniciarse al redesplegar.
 
 ## Conclusiones
-- La publicación en Release genera una salida lista para ejecutar y separada de los fuentes.
-- GitHub Actions automatiza restauración, compilación y publicación del artefacto.
-- Render conecta el repositorio con una aplicación accesible mediante una URL.
-- Las claves primarias y foráneas entre categorías y productos mantienen la integridad relacional.
+
+- Publicar en Release crea una salida separada lista para ejecutar.
+- GitHub Actions automatiza compilación y publicación del artefacto.
+- Render permite conectar el repositorio con una aplicación web desplegada.
+- Las claves primarias y foráneas relacionan productos con categorías y mantienen la integridad de los datos.
