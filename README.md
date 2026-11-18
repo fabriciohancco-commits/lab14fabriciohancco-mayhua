@@ -22,9 +22,9 @@ Verifica que `published/` incluya la aplicación y sus dependencias.
 
 ## GitHub Actions y Render
 
-`.github/workflows/dotnet.yml` restaura, compila en Release, publica y guarda el artefacto en cada push a `main`. `Dockerfile` y `render.yaml` configuran un Web Service para conectar desde Render al repositorio.
+`.github/workflows/dotnet.yml` restaura, compila en Release, publica y guarda el artefacto en cada push a `main`. `Dockerfile` y `render.yaml` configuran un Web Service y una base PostgreSQL de Render. Rider usa SQLite local; Render usa PostgreSQL con `DATABASE_URL`. Después del despliegue, abre `https://<tu-servicio>.onrender.com/swagger` y prueba `GET /api/products` y `POST /api/products`.
 
-La instancia gratuita de Render usa un archivo SQLite temporal; los datos de producción pueden reiniciarse al redesplegar.
+La instancia gratuita de PostgreSQL de Render sirve para la demostración, pero vence a los 30 días; exporta o copia los datos antes de esa fecha. Para uso continuo, Render requiere un plan de base de datos que no expire.
 
 ## Conclusiones
 
@@ -32,4 +32,5 @@ La instancia gratuita de Render usa un archivo SQLite temporal; los datos de pro
 - GitHub Actions automatiza compilación y publicación del artefacto.
 - Render permite conectar el repositorio con una aplicación web desplegada.
 - Las claves primarias y foráneas relacionan productos con categorías y mantienen la integridad de los datos.
+
 

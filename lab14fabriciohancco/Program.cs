@@ -1,18 +1,29 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Data Source=lab14-inventory.db";
-builder.Services.AddDbContext<LabDbContext>(options => options.UseSqlite(connectionString));
+if (builder.Environment.IsProduction())
+{
+    var databaseUrl = builder.Configuration["DATABASE_URL"]
+        ?? throw new InvalidOperationException("Render must provide DATABASE_URL.");
+    var postgresConnection = BuildPostgresConnectionString(databaseUrl);
+    builder.Services.AddDbContext<LabDbContext>(options => options.UseNpgsql(postgresConnection));
+}
+else
+{
+    var sqliteConnection = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=lab14-inventory.db";
+    builder.Services.AddDbContext<LabDbContext>(options => options.UseSqlite(sqliteConnection));
+}
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
 { Title = "Lab 14 · Inventario", Version = "v1", Description = "API para gestionar productos y categorías." }));
 
 var app = builder.Build();
 
-// Render's demo instance initializes its temporary SQLite store on startup.
+// Render initializes its cloud PostgreSQL schema on startup.
 // Local development uses the database created and managed from DataGrip.
 if (app.Environment.IsProduction())
 {
@@ -155,3 +166,21 @@ sealed record ProductView(int Id, string Name, decimal Price, int CategoryId, st
 
 
 
+
+static string BuildPostgresConnectionString(string databaseUrl)
+{
+    var uri = new Uri(databaseUrl);
+    var credentials = uri.UserInfo.Split(':', 2);
+    if (credentials.Length != 2 || string.IsNullOrWhiteSpace(uri.AbsolutePath.Trim('/')))
+        throw new InvalidOperationException("DATABASE_URL is not a valid PostgreSQL URL.");
+
+    return new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.IsDefaultPort ? 5432 : uri.Port,
+        Database = uri.AbsolutePath.Trim('/'),
+        Username = Uri.UnescapeDataString(credentials[0]),
+        Password = Uri.UnescapeDataString(credentials[1]),
+        SslMode = SslMode.Prefer
+    }.ConnectionString;
+}
