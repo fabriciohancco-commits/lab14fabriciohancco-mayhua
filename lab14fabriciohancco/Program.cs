@@ -4,12 +4,15 @@ using Microsoft.OpenApi.Models;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
-if (builder.Environment.IsProduction())
+var databaseUrl = builder.Configuration["DATABASE_URL"];
+if (!string.IsNullOrWhiteSpace(databaseUrl))
 {
-    var databaseUrl = builder.Configuration["DATABASE_URL"]
-        ?? throw new InvalidOperationException("Render must provide DATABASE_URL.");
     var postgresConnection = DatabaseConnectionFactory.BuildPostgresConnectionString(databaseUrl);
     builder.Services.AddDbContext<LabDbContext>(options => options.UseNpgsql(postgresConnection));
+}
+else if (builder.Environment.IsProduction())
+{
+    throw new InvalidOperationException("Render must provide DATABASE_URL.");
 }
 else
 {
@@ -184,3 +187,4 @@ static class DatabaseConnectionFactory
         }.ConnectionString;
     }
 }
+
