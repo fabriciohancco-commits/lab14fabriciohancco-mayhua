@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=lab14-inventory.db";
 builder.Services.AddDbContext<LabDbContext>(options => options.UseSqlite(connectionString));
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
+{ Title = "Lab 14 · Inventario", Version = "v1", Description = "API para gestionar productos y categorías." }));
 
 var app = builder.Build();
 
@@ -24,12 +28,14 @@ if (app.Environment.IsProduction())
     }
 }
 
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).WithTags("Sistema");
 app.MapGet("/api/categories", async (LabDbContext db) =>
-    await db.Categories.AsNoTracking().OrderBy(category => category.Name).ToListAsync());
+    await db.Categories.AsNoTracking().OrderBy(category => category.Name).ToListAsync()).WithTags("Categorías");
 
 app.MapPost("/api/categories", async (CategoryInput input, LabDbContext db) =>
 {
@@ -146,3 +152,6 @@ sealed class Product
 sealed record CategoryInput(string Name, string? Description);
 sealed record ProductInput(string Name, decimal Price, int CategoryId);
 sealed record ProductView(int Id, string Name, decimal Price, int CategoryId, string CategoryName);
+
+
+

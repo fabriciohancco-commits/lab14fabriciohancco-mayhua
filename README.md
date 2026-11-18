@@ -1,6 +1,6 @@
 # Laboratorio 14 — Inventario .NET 8
 
-Aplicación para registrar productos relacionados con categorías. La pantalla permite buscar, agregar, editar y eliminar productos; cada cambio se guarda en SQLite.
+Aplicación para registrar productos relacionados con categorías. La pantalla permite buscar, agregar, editar y eliminar productos; cada cambio se guarda en SQLite. Swagger en `/swagger` muestra y permite probar las operaciones de la API.
 
 ## Ejecutar en Rider
 
@@ -32,3 +32,4 @@ La instancia gratuita de Render usa un archivo SQLite temporal; los datos de pro
 - GitHub Actions automatiza compilación y publicación del artefacto.
 - Render permite conectar el repositorio con una aplicación web desplegada.
 - Las claves primarias y foráneas relacionan productos con categorías y mantienen la integridad de los datos.
+
